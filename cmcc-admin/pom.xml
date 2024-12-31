@@ -60,6 +60,12 @@
             <groupId>com.cmcc</groupId>
             <artifactId>cmcc-generator</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.cmcc</groupId>
+            <artifactId>cmcc-suite</artifactId>
+            <version>4.0.0</version>
+            <scope>compile</scope>
+        </dependency>
 
     </dependencies>
 

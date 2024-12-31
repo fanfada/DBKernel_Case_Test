@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cmcc.suite.mapper.SysCaseMapper">
+
+    <resultMap type="SysCase" id="SysCaseMap">
+        <result property="caseId" column="case_id" jdbcType="INTEGER"/>
+        <result property="funcId" column="func_id" jdbcType="INTEGER"/>
+        <result property="caseName" column="case_name" jdbcType="VARCHAR"/>
+        <result property="caseType" column="case_type" jdbcType="VARCHAR"/>
+        <result property="path" column="path" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="delFlag" column="del_flag" jdbcType="VARCHAR"/>
+        <result property="createBy" column="create_by" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <select id="queryAll" parameterType="SysCase" resultMap="SysCaseMap">
+        select c.case_id, c.func_id, c.case_name,
+               c.case_type, c.path, c.status, c.del_flag, c.create_by, c.create_time, c.remark, f.func_name
+        from sys_case c
+        left join sys_func f on c.func_id = f.func_id
+        where c.del_flag = '0'
+        <if test="caseId != null and caseId != 0">
+            AND c.case_id = #{caseId}
+        </if>
+        <if test="caseName != null and caseName != ''">
+            AND c.case_name like concat('%', #{caseName}, '%')
+        </if>
+        <if test="status != null and status != ''">
+            AND c.status = #{status}
+        </if>
+        <if test="funcId != null and funcId != 0">
+            AND (c.func_id = #{funcId} OR c.func_id IN ( SELECT t.func_id FROM sys_func t WHERE find_in_set(#{funcId}, ancestors) ))
+        </if>
+    </select>
+    
+    <!--查询单个-->
+    <select id="queryById" resultMap="SysCaseMap">
+        select
+case_id, func_id, case_name, case_type, path, status, del_flag, create_by, create_time, update_by, update_time, remark
+        from sys_case
+        where case_id = #{caseId}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="SysCaseMap">
+        select
+        case_id, func_id, case_name, case_type, path, status, del_flag, create_by, create_time, update_by, update_time,
+        remark
+        from sys_case
+        <where>
+            <if test="caseId != null">
+                and case_id = #{caseId}
+            </if>
+            <if test="funcId != null">
+                and func_id = #{funcId}
+            </if>
+            <if test="caseName != null and caseName != ''">
+                and case_name = #{caseName}
+            </if>
+            <if test="caseType != null and caseType != ''">
+                and case_type = #{caseType}
+            </if>
+            <if test="path != null and path != ''">
+                and path = #{path}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="createBy != null and createBy != ''">
+                and create_by = #{createBy}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                and update_by = #{updateBy}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="remark != null and remark != ''">
+                and remark = #{remark}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from sys_case
+        <where>
+            <if test="caseId != null">
+                and case_id = #{caseId}
+            </if>
+            <if test="funcId != null">
+                and func_id = #{funcId}
+            </if>
+            <if test="caseName != null and caseName != ''">
+                and case_name = #{caseName}
+            </if>
+            <if test="caseType != null and caseType != ''">
+                and case_type = #{caseType}
+            </if>
+            <if test="path != null and path != ''">
+                and path = #{path}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                and del_flag = #{delFlag}
+            </if>
+            <if test="createBy != null and createBy != ''">
+                and create_by = #{createBy}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                and update_by = #{updateBy}
+            </if>
+            <if test="updateTime != null">
+                and update_time = #{updateTime}
+            </if>
+            <if test="remark != null and remark != ''">
+                and remark = #{remark}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="caseId" useGeneratedKeys="true">
+        insert into sys_case(func_id, case_name, case_type, path, status, del_flag, create_by, create_time, update_by, update_time, remark)
+        values (#{funcId}, #{caseName}, #{caseType}, #{path}, #{status}, #{delFlag}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{remark})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="caseId" useGeneratedKeys="true">
+        insert into sys_case(func_id, case_name, case_type, path, status, del_flag, create_by, create_time, update_by, update_time, remark)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+        (#{entity.funcId}, #{entity.caseName}, #{entity.caseType}, #{entity.path}, #{entity.status}, #{entity.delFlag}, #{entity.createBy}, #{entity.createTime}, #{entity.updateBy}, #{entity.updateTime}, #{entity.remark})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="caseId" useGeneratedKeys="true">
+        insert into sys_case(func_id, case_name, case_type, path, status, del_flag, create_by, create_time, update_by, update_time, remark)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.funcId}, #{entity.caseName}, #{entity.caseType}, #{entity.path}, #{entity.status}, #{entity.delFlag}, #{entity.createBy}, #{entity.createTime}, #{entity.updateBy}, #{entity.updateTime}, #{entity.remark})
+        </foreach>
+        on duplicate key update
+func_id = values(func_id), case_name = values(case_name), case_type = values(case_type), path = values(path), status = values(status), del_flag = values(del_flag), create_by = values(create_by), create_time = values(create_time), update_by = values(update_by), update_time = values(update_time), remark = values(remark)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update sys_case
+        <set>
+            <if test="funcId != null">
+                func_id = #{funcId},
+            </if>
+            <if test="caseName != null and caseName != ''">
+                case_name = #{caseName},
+            </if>
+            <if test="caseType != null and caseType != ''">
+                case_type = #{caseType},
+            </if>
+            <if test="path != null and path != ''">
+                path = #{path},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="delFlag != null and delFlag != ''">
+                del_flag = #{delFlag},
+            </if>
+            <if test="createBy != null and createBy != ''">
+                create_by = #{createBy},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="updateBy != null and updateBy != ''">
+                update_by = #{updateBy},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+        </set>
+        where case_id = #{caseId}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from sys_case where case_id = #{caseId}
+    </delete>
+
+</mapper>
